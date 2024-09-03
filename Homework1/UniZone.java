@@ -1,0 +1,104 @@
+import java.util.LinkedList;
+
+public abstract class UniZone implements IZone {
+    public abstract LinkedList<? extends Adoptable> getAdoptable();
+    public Double targetWeight;
+
+    /**
+     * Calculates the total number of adoptable pets-to-be in the zone that are >= 0 and <= 12 months old
+     *
+     * @return the calculated total
+     */
+    public int totalYoungins() {
+        int total = 0;
+
+        for (Adoptable a : getAdoptable()) {
+            if ((a.age >= 0.0d) && (a.age <= 12.0d)) {
+                total++;
+            }
+        }
+        return total;
+    }
+
+    /**
+     * Calculates the average age of the adoptable pets-to-be in the zone.
+     *
+     * @return the average age
+     */
+    public double averageAge() {
+        Double avAge = 0.0d;
+        Double totalAges = 0.0d;
+        int count = 0;
+
+        if (getAdoptable().isEmpty()) {
+            return 0.0d;
+        }
+
+        for (Adoptable a : getAdoptable()) {
+            totalAges += a.age;
+            count++;
+        }
+
+        avAge = totalAges / count;
+
+        return avAge;
+    }
+
+    /**
+     * changes the feed stores of the zone,
+     * Generates a string label for the zone pantry marquee
+     *
+     * @param food     the type of food being added
+     * @param quantity the amount of food being added or subtracked
+     * @return a string of the form "Species: # unit of food-type | ..."
+     * where # is either a number or the text "unknown" if the amount is currently < 0
+     */
+    public abstract String changeFeed(String food, Integer quantity);
+
+    /**
+     * Using the last known sensor data for an adoptable, finds the closest adoptable to some location
+     *
+     * @param location the 2D top-down coordinate we are searching near
+     * @return The data profile of the adoptable last-seen nearest to that coordinate or null if the zone is empty
+     * If two adoptables are equal distances from a coord, produce the one added to the zone latest.
+     */
+    public Adoptable closestTo(Coord location) {
+        Double closestDist = Double.MAX_VALUE;
+        Adoptable closestAdoptable = null;
+
+        if (getAdoptable().isEmpty()) {
+            return null;
+        } else {
+            for (Adoptable a : getAdoptable()) {
+                Double dist = location.distanceFrom(a.whereabouts);
+                if (dist < closestDist) {
+                    closestAdoptable = a;
+                    closestDist = dist;
+                } else if (dist == closestDist) {
+                    closestAdoptable = a;
+                }
+            }
+
+            return closestAdoptable;
+        }
+    }
+
+        /** Find the adoptable pets-to-be in the zone that are strictly over or under weight
+         * @param threshold a threshold of how over or under weight each adoptable pet-to-be can be
+         * @return The list of adoptable animals that are currently beyond (> or <) the threshold of their target weight
+         */
+
+        public LinkedList<Adoptable> weighIn(Double threshold){
+            LinkedList<Adoptable> adoptableConcerns = new LinkedList<Adoptable>();
+
+            for (Adoptable a : getAdoptable()) {
+                Double dWeight = a.deltaWeight();
+                if (dWeight > threshold) {
+                    adoptableConcerns.add(a);
+                }
+            }
+
+            return adoptableConcerns;
+        }
+}
+
